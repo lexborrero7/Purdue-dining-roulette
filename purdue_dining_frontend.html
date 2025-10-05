@@ -222,7 +222,10 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:5000/api';
+        // Auto-detect API URL (works locally and on Vercel)
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5000/api' 
+            : '/api';
         
         async function rollDice() {
             const btn = document.getElementById('diceBtn');
