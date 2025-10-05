@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boilermaker Dining Roulette 🎲</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000000;
+            color: #CFB991;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #CFB991;
+            text-shadow: 2px 2px 4px rgba(207, 185, 145, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #CFB991;
+            opacity: 0.8;
+        }
+
+        .dice-button {
+            background: linear-gradient(145deg, #CFB991, #B8A070);
+            border: none;
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 4rem;
+            transition: all 0.3s ease;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 20px rgba(207, 185, 145, 0.3);
+        }
+
+        .dice-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(207, 185, 145, 0.5);
+        }
+
+        .dice-button:active {
+            transform: scale(0.95);
+        }
+
+        .dice-button.rolling {
+            animation: roll 1s ease-in-out;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(1); }
+            75% { transform: rotate(270deg) scale(1.2); }
+        }
+
+        .status {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            color: #CFB991;
+            min-height: 30px;
+        }
+
+        .meal-card {
+            background: rgba(207, 185, 145, 0.1);
+            border: 2px solid #CFB991;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            text-align: left;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .meal-card h2 {
+            color: #CFB991;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .meal-period {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #CFB991;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .meal-item {
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 4px solid #CFB991;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .meal-item h3 {
+            color: #CFB991;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .meal-item-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+        }
+
+        .nutrition-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .nutrition-item {
+            background: rgba(207, 185, 145, 0.2);
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .nutrition-label {
+            font-weight: bold;
+            color: #CFB991;
+        }
+
+        .hours-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(207, 185, 145, 0.1);
+            border-radius: 8px;
+        }
+
+        .hours-section h4 {
+            color: #CFB991;
+            margin-bottom: 10px;
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+
+        .loading {
+            color: #CFB991;
+            font-size: 1.2rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .dice-button {
+                width: 100px;
+                height: 100px;
+                font-size: 3rem;
+            }
+            
+            .hours-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐾 Boilermaker Dining Roulette 🎲</h1>
+        <p class="subtitle">Feeling indecisive? Let the dice decide your meal!</p>
+        
+        <button class="dice-button" id="diceBtn" onclick="rollDice()">🎲</button>
+        
+        <div class="status" id="status"></div>
+        
+        <div id="mealResult"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        
+        async function rollDice() {
+            const btn = document.getElementById('diceBtn');
+            const status = document.getElementById('status');
+            const result = document.getElementById('mealResult');
+            
+            // Add rolling animation
+            btn.classList.add('rolling');
+            btn.disabled = true;
+            status.innerHTML = '<span class="loading">Rolling the dice... 🎲</span>';
+            result.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_URL}/random-meal`);
+                const data = await response.json();
+                
+                // Wait for animation to complete
+                setTimeout(() => {
+                    btn.classList.remove('rolling');
+                    btn.disabled = false;
+                    
+                    if (response.ok) {
+                        displayMeal(data);
+                        status.textContent = '🎉 Bon Appétit, Boilermaker!';
+                    } else {
+                        status.innerHTML = `<span class="error">😕 ${data.error}</span>`;
+                    }
+                }, 1000);
+                
+            } catch (error) {
+                setTimeout(() => {
+                    btn.classList.remove('rolling');
+                    btn.disabled = false;
+                    status.innerHTML = '<span class="error">❌ Connection error. Make sure the backend is running!</span>';
+                }, 1000);
+            }
+        }
+        
+        function displayMeal(data) {
+            const result = document.getElementById('mealResult');
+            
+            const html = `
+                <div class="meal-card">
+                    <h2>📍 ${data.dining_court}</h2>
+                    <div class="meal-period">${data.meal_period}</div>
+                    
+                    <div class="meal-item">
+                        <h3>🍽️ Main Course</h3>
+                        <div class="meal-item-name">${data.main.name}</div>
+                        <div class="nutrition-info">
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Calories:</span> ${data.main.calories}
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Protein:</span> ${data.main.protein}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Fat:</span> ${data.main.fat}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Carbs:</span> ${data.main.carbs}g
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="meal-item">
+                        <h3>🥗 Side</h3>
+                        <div class="meal-item-name">${data.side.name}</div>
+                        <div class="nutrition-info">
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Calories:</span> ${data.side.calories}
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Protein:</span> ${data.side.protein}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Fat:</span> ${data.side.fat}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Carbs:</span> ${data.side.carbs}g
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="meal-item">
+                        <h3>🍰 Dessert</h3>
+                        <div class="meal-item-name">${data.dessert.name}</div>
+                        <div class="nutrition-info">
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Calories:</span> ${data.dessert.calories}
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Protein:</span> ${data.dessert.protein}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Fat:</span> ${data.dessert.fat}g
+                            </div>
+                            <div class="nutrition-item">
+                                <span class="nutrition-label">Carbs:</span> ${data.dessert.carbs}g
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="hours-section">
+                        <h4>⏰ Dining Court Hours</h4>
+                        <div class="hours-grid">
+                            <div><strong>Breakfast:</strong> ${data.hours.breakfast}</div>
+                            <div><strong>Lunch:</strong> ${data.hours.lunch}</div>
+                            <div><strong>Dinner:</strong> ${data.hours.dinner}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            result.innerHTML = html;
+        }
+        
+        // Check backend health on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    document.getElementById('status').textContent = '✅ Ready to roll!';
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = '<span class="error">⚠️ Backend not connected. Start the Python server!</span>';
+            }
+        });
+    </script>
+</body>
+</html>
